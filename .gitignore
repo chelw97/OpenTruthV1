@@ -1,0 +1,13 @@
+*.csv
+/data/**
+/res
+*.pyc
+.env*
+**/.DS_Store
+/tmp
+*.pkl
+logs.txt
+test*.py
+tweets/
+!.env.example
+!data/prompt.json
