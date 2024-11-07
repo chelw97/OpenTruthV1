@@ -1,0 +1,5 @@
+tweepy==4.14.0
+openai==1.52.0
+python-dotenv==0.19.1
+selenium==4.4.3
+rich==13.9.4
