@@ -1,0 +1,18 @@
+{
+    "log_path": "logs/logs.txt",
+    "dialog_path": "res/dialog.txt",
+    "headless": false,
+    "logo_path":"logo.txt",
+    "interval_time":300,
+    "llm_settings":{
+        "gpt":{
+            "model": "gpt-4o-mini",
+            "max_tokens": 1000,
+            "temperature": 0.7,
+            "top_p": 1.0,
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0
+        }
+    }
+
+}
