@@ -4,16 +4,6 @@ import argparse
 import getpass
 from twitter_scraper import Twitter_Scraper
 
-try:
-    from dotenv import load_dotenv
-
-    print("Loading .env file")
-    load_dotenv()
-    print("Loaded .env file\n")
-except Exception as e:
-    print(f"Error loading .env file: {e}")
-    sys.exit(1)
-
 
 def main():
     try:

@@ -4,22 +4,41 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    StaleElementReferenceException,
+    WebDriverException,
+)
+from webdriver_manager.firefox import GeckoDriverManager
+
+from fake_headers import Headers
+from time import sleep
+import sys
+
 import time
 from os.path import exists
 import os
 
-from webdriver_manager.chrome import ChromeDriverManager
-
+TWITTER_LOGIN_URL = "https://twitter.com/i/flow/login"
 
 class twAuto:
     driver = None
     cookies_exists = exists('cookies.pkl')
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--ignore-certificate-errors')
-    chrome_options.add_experimental_option(
-        "excludeSwitches", ["enable-logging"])
+    header = Headers().generate()["User-Agent"]
+
+    browser_option = FirefoxOptions()
+    browser_option.add_argument("--no-sandbox")
+    browser_option.add_argument("--disable-dev-shm-usage")
+    browser_option.add_argument("--ignore-certificate-errors")
+    browser_option.add_argument("--disable-gpu")
+    browser_option.add_argument("--log-level=3")
+    browser_option.add_argument("--disable-notifications")
+    browser_option.add_argument("--disable-popup-blocking")
+    browser_option.add_argument("--user-agent={}".format(header))
 
     def __init__(
         self,
@@ -43,7 +62,7 @@ class twAuto:
         self.debugMode = debugMode
         self.createCookies = createCookies
         if headless:
-            twAuto.chrome_options.add_argument('--headless')
+            twAuto.browser_option.add_argument('--headless')
         if debugMode:
             print("twAuto started.")
 
@@ -51,24 +70,173 @@ class twAuto:
     def start(self):
         print("Starting twAuto...")
         try:
-            if self.chromeDriverMode == "auto":
-                print("Downloading Chrome Driver...")
-                #chromedriver_autoinstaller.install() 
+            # print("Initializing ChromeDriver...")
+            # driver = webdriver.Chrome(
+            #     options=browser_option,
+            # )
 
-                twAuto.driver = webdriver.Chrome(ChromeDriverManager().install(), options=twAuto.chrome_options)
-                print("Chrome Driver Downloaded Successfully")
-            else:
-                print("Using Chrome Driver from the path: "+self.driverPath)
-                twAuto.driver = webdriver.Chrome(self.driverPath, options=twAuto.chrome_options)
-        except Exception as e:
-            if self.debugMode:
-                print("twAuto Error: ", e)
+            print("Initializing FirefoxDriver...")
+            twAuto.driver = webdriver.Firefox(
+                options=self.browser_option,
+            )
+
+            print("WebDriver Setup Complete")
+        except WebDriverException:
+            try:
+                # print("Downloading ChromeDriver...")
+                # chromedriver_path = ChromeDriverManager().install()
+                # chrome_service = ChromeService(executable_path=chromedriver_path)
+
+                print("Downloading FirefoxDriver...")
+                firefoxdriver_path = GeckoDriverManager().install()
+                firefox_service = FirefoxService(executable_path=firefoxdriver_path)
+
+                # print("Initializing ChromeDriver...")
+                # driver = webdriver.Chrome(
+                #     service=chrome_service,
+                #     options=browser_option,
+                # )
+
+                print("Initializing FirefoxDriver...")
+                twAuto.driver = webdriver.Firefox(
+                    service=firefox_service,
+                    options=self.browser_option,
+                )#show browser
+                
+                print("WebDriver Setup Complete")
+            except Exception as e:
+                print(f"Error setting up WebDriver: {e}")
+                sys.exit(1)
+
     # test function to open twitter on chrome
     def openTw(self):
         twAuto.driver.get("https://x.com/home")
 
-    # login to twitter
     def login(self):
+        print()
+        print("Logging in to Twitter...")
+
+        try:
+            self.driver.maximize_window()
+            self.driver.get(TWITTER_LOGIN_URL)
+            sleep(3)
+
+            self._input_username()
+            self._input_unusual_activity()
+            self._input_password()
+
+            cookies = self.driver.get_cookies()
+
+            auth_token = None
+
+            for cookie in cookies:
+                if cookie["name"] == "auth_token":
+                    auth_token = cookie["value"]
+                    break
+
+            if auth_token is None:
+                raise ValueError(
+                    """This may be due to the following:
+
+- Internet connection is unstable
+- Username is incorrect
+- Password is incorrect
+"""
+                )
+
+            print()
+            print("Login Successful")
+            print()
+            self.login_bool = True
+        except Exception as e:
+            print()
+            print(f"Login Failed: {e}")
+            sys.exit(1)
+
+        pass
+
+    def _input_username(self):
+        input_attempt = 0
+
+        while True:
+            try:
+                username = self.driver.find_element(
+                    "xpath", "//input[@autocomplete='username']"
+                )
+
+                username.send_keys(self.username)
+                username.send_keys(Keys.RETURN)
+                sleep(3)
+                break
+            except NoSuchElementException:
+                input_attempt += 1
+                if input_attempt >= 3:
+                    print()
+                    print(
+                        """There was an error inputting the username.
+
+It may be due to the following:
+- Internet connection is unstable
+- Username is incorrect
+- Twitter is experiencing unusual activity"""
+                    )
+                    self.driver.quit()
+                    sys.exit(1)
+                else:
+                    print("Re-attempting to input username...")
+                    sleep(2)
+
+    def _input_unusual_activity(self):
+        input_attempt = 0
+
+        while True:
+            try:
+                unusual_activity = self.driver.find_element(
+                    "xpath", "//input[@data-testid='ocfEnterTextTextInput']"
+                )
+                unusual_activity.send_keys(self.username)
+                unusual_activity.send_keys(Keys.RETURN)
+                sleep(3)
+                break
+            except NoSuchElementException:
+                input_attempt += 1
+                if input_attempt >= 3:
+                    break
+
+    def _input_password(self):
+        input_attempt = 0
+
+        while True:
+            try:
+                password = self.driver.find_element(
+                    "xpath", "//input[@autocomplete='current-password']"
+                )
+
+                password.send_keys(self.password)
+                password.send_keys(Keys.RETURN)
+                sleep(3)
+                break
+            except NoSuchElementException:
+                input_attempt += 1
+                if input_attempt >= 3:
+                    print()
+                    print(
+                        """There was an error inputting the password.
+
+It may be due to the following:
+- Internet connection is unstable
+- Password is incorrect
+- Twitter is experiencing unusual activity"""
+                    )
+                    self.driver.quit()
+                    sys.exit(1)
+                else:
+                    print("Re-attempting to input password...")
+                    sleep(2)
+
+
+    # login to twitter
+    def login2(self):
         try:
             twAuto.driver.get("https://x.com/")
             # this cookie importing prevents 'New login notification" in every action
@@ -155,6 +323,7 @@ class twAuto:
     # tweet text
     def tweet(self, imgpath=None, text=""):
         # load tweeting page
+        print(twAuto.driver)
         twAuto.driver.get("https://x.com/home")
         urlWithText = "https://x.com/compose/tweet?text="+text
         twAuto.driver.get(urlWithText)
@@ -166,7 +335,6 @@ class twAuto:
                         (By.XPATH, "//*[@id='layers']/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[3]/div/div[1]/div/div/div/div/div[2]/div[3]/div/div/div[2]/div[4]")))
                 except TimeoutException:
                     print('Couldnt tweet.')
-                    
                 if imgpath != None:
                     element = twAuto.driver.find_element(
                         By.XPATH, "//input[@type='file']")
@@ -178,6 +346,7 @@ class twAuto:
 
                 twAuto.driver.find_element(By.XPATH,
                                         '//*[@id="layers"]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div/div[3]/div/div[1]/div/div/div/div/div[2]/div[3]/div/div/div[2]/div[4]').click()
+                print("scraper writing...")
                 try:
                     wait = WebDriverWait(twAuto.driver, 5)
                     wait.until(EC.presence_of_element_located(
@@ -216,7 +385,7 @@ class twAuto:
             try:
                 try:
                     wait = WebDriverWait(twAuto.driver, 120)
-                    wait.until(EC.presence_of_element_located((By.XPATH, '//div[@data-testid="tweetButton"]')))
+                    wait.until(EC.presence_of_element_located((By.XPATH, '//button[@data-testid="tweetButton"]')))
                     
                 except TimeoutException:
                     print('Couldnt tweet.' )
@@ -231,7 +400,7 @@ class twAuto:
                     element.send_keys(imgpath)
                 
                 #find tweet button
-                tweetButton = twAuto.driver.find_element(By.XPATH, '//div[@data-testid="tweetButton"]')
+                tweetButton = twAuto.driver.find_element(By.XPATH, '//button[@data-testid="tweetButton"]')
                 
                 #click tweet button
                 twAuto.driver.execute_script("arguments[0].click()", tweetButton)
@@ -247,6 +416,7 @@ class twAuto:
                     print("Tweet URL:"+tweetUrl)
                     return tweetUrl
                 except TimeoutException:
+                    # pass
                     try:
                         twAuto.driver.find_element(
                             'xpath', "//*[@id='layers']/div[3]/div/div/div/div/div[1]")
