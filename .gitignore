@@ -11,3 +11,4 @@ test*.py
 tweets/
 !.env.example
 !data/prompt.json
+logs/*

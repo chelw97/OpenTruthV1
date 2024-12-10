@@ -11,10 +11,10 @@ from interface.observationInterface import observationInterface
 from src.xBridge import xBridge
 
 class observationX(observationInterface):
-    def __init__(self):
+    def __init__(self,scrape):
         load_dotenv()
         self.config=config
-        self.xBridge_instance = xBridge()
+        self.xBridge_instance = xBridge(scrape)
 
     def get(self):
         return self.get_home_timeline()

@@ -58,7 +58,6 @@ from src.gpt import gpt
 from src.config import get_config
 config=get_config()
 
-
 class openTruth:
     def __init__(self, action_instance: actionInterface, decision_instance: decisionInterface, dialogManager_instance: dialogManagerInterface, memory_instance: memoryInterface, observation_instance: observationInterface, logs_instance: logs, gpt_instance: aiBridgeInterface):
         self.action = action_instance
@@ -66,8 +65,8 @@ class openTruth:
         self.dialogManager = dialogManager_instance
         self.memory = memory_instance
         self.observation = observation_instance
-        self.logs = logs_instance
         self.gpt = gpt_instance
+        self.logs = logs_instance
         
 
     def run(self):
@@ -113,13 +112,12 @@ class openTruth:
 
 if __name__ == '__main__':
     gpt_instance = gpt()
-    action_instance = actionX()
+    action_instance = actionX(scrape=True)
     decision_instance = decision(gpt_instance)
     dialogManager_instance = dialogManager()
     memory_instance = memory()
-    observation_instance = observationX()
-    logs_instance = logs()
-
+    observation_instance = observationX(scrape=True)
+    logs_instance=logs()
 
     openTruth = openTruth(action_instance, decision_instance, dialogManager_instance, memory_instance, observation_instance, logs_instance, gpt_instance)
     openTruth.run()
