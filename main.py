@@ -54,6 +54,7 @@ from src.memory import memory
 from src.observationX import observationX
 from src.logs import logs
 from src.gpt import gpt
+from src.xBridge import xBridge
 
 from src.config import get_config
 config=get_config()
@@ -112,11 +113,12 @@ class openTruth:
 
 if __name__ == '__main__':
     gpt_instance = gpt()
-    action_instance = actionX(scrape=True)
+    xBridge_instance = xBridge(scrape=True)
+    action_instance = actionX(xBridge_instance)
     decision_instance = decision(gpt_instance)
     dialogManager_instance = dialogManager()
     memory_instance = memory()
-    observation_instance = observationX(scrape=True)
+    observation_instance = observationX(xBridge_instance)
     logs_instance=logs()
 
     openTruth = openTruth(action_instance, decision_instance, dialogManager_instance, memory_instance, observation_instance, logs_instance, gpt_instance)

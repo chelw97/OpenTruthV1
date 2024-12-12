@@ -11,7 +11,7 @@ def get_config():
     return res
     
 def get_credentials():
-    load_dotenv()
+    load_dotenv(override=True)
     # Twitter API credentials
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     TWITTER_API_CONSUMER_KEY = os.getenv("TWITTER_API_CONSUMER_KEY")
@@ -34,6 +34,7 @@ def get_credentials():
         "TWITTER_email":TWITTER_email,
         "TWITTER_pwd":TWITTER_pwd
     }
+    
 
 def get_prompt():
     with open("data/prompt.json") as f:

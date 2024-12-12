@@ -18,6 +18,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 from fake_headers import Headers
 from time import sleep
 import sys
+import traceback
 
 import time
 from os.path import exists
@@ -442,9 +443,12 @@ It may be due to the following:
 
         
     # quote tweet. this function uses the "adding the quoted tweets url to end of the text method" but maybe i will add the another version of this function that uses the quote tweet function later
-    def quoteTweet(self, url="", imgpath="", text=""):
-        
+    def quoteTweet(self, tweet_id="",url="", imgpath="", text=""):
+        raise Exception("This function is not implemented yet.")
         try:
+            assert tweet_id != "" or url != "", "tweet_id or url must be provided"
+            tweet_id = self.extract_tweet_id(url) if tweet_id == "" else tweet_id
+
             twAuto.driver.get("https://x.com/home")
             fixUrl=url+"?s=20"
             twAuto.driver.get(fixUrl)
@@ -617,25 +621,15 @@ It may be due to the following:
             return False
 
     # reply to a tweet
-    def reply(self, url="", imgpath="", text=""):
+    def reply(self, tweet_id="",url="", imgpath="", text=""):
         try:
+            assert tweet_id != "" or url != "", "tweet_id or url must be provided"
             twAuto.driver.get("https://x.com/home")
-            tweet_id = self.extract_tweet_id(url)
+            tweet_id = self.extract_tweet_id(url) if tweet_id == "" else tweet_id
             urlWithText = "https://x.com/intent/tweet?in_reply_to="+tweet_id+"&text="+text
             twAuto.driver.get(urlWithText)
             if self.pathType == "testId" or self.pathType == "xPath":
                 #data-testid="tweetTextarea_0_label"]tweetButton
-                try:
-                    try:
-                        if imgpath != "":
-                            element = twAuto.driver.find_element(
-                                By.XPATH, "//input[@type='file']")
-
-                            twAuto.driver.execute_script(
-                                "arguments[0].style.display = 'block';", element)
-
-                            element.send_keys(imgpath)
-                        
                         #check if there is a mask
                         try:
                             maskClose = twAuto.driver.find_element(By.XPATH, '//div[@data-testid="app-bar-close"]')
@@ -645,9 +639,29 @@ It may be due to the following:
                         #find tweet button
                         time.sleep(1)
                         wait = WebDriverWait(twAuto.driver, 120)
+                        if imgpath is not None and imgpath != "":
+                            # try:
+                            print("image path:", imgpath)
+                            wait = WebDriverWait(twAuto.driver, 120)
+                            # Wait for the file input field to be clickable
+                            element = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@data-testid='fileInput']")))
+                            # Ensure the input is visible for interaction
+                            twAuto.driver.execute_script("arguments[0].removeAttribute('style');", element)
+
+                            # Provide the file path to the input element
+                            element.send_keys(imgpath)
+                            time.sleep(10)
+                            image_preview = WebDriverWait(twAuto.driver, 120).until(
+                                                        EC.presence_of_element_located((By.XPATH, "//div[contains(@aria-label, 'Image')]"))
+                                                    )
+                            print("image uploaded")
+                                # except Exception as e:
+                                #     if self.debugMode : print("twAuto Error: ", e)
+                                #     pass
                         try:
                             wait = WebDriverWait(twAuto.driver, 320)
-                            tweetButton = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-testid="tweetButton"]')))
+                            tweetButton = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-testid="tweetButton"]')))
+                            
                             #click tweet button
                             twAuto.driver.execute_script("arguments[0].click()", tweetButton)
                         except Exception as e:
@@ -664,14 +678,10 @@ It may be due to the following:
                             By.XPATH, '//div[@data-testid="toast"]')
                         replyURLElement = replyURLButton.find_element(By.XPATH, './/div[2]/a[1]').get_attribute("href")
                         return replyURLElement
-                    except Exception as e:
-                        if self.debugMode : print("twAuto Error: ", e)
-                        return False
-                except Exception as e:
-                    if self.debugMode : print("twAuto Error: ", e)
-                    return False
         except Exception as e:
-            if self.debugMode : print("twAuto Error: ", e)
+            if self.debugMode : 
+                print("twAuto Error: ", e)
+                traceback.print_exc()
             return False
                 
     # locates tweet in the page based on the tweets content

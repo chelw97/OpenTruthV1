@@ -26,7 +26,7 @@ class xBridge:
                 # driverPath="your drivers path", #use only if you are using the chromeDriverMode in manual mode
                 pathType="testId", #It is testId by default. I highly recommend you to use testId instead of xPath. If you had any problems with library you can try the xPath mode too.
                 headless=False, #Headless is true by default.
-                debugMode= False, #Really poorly implemented debug mode, this is for reading occured errors.
+                debugMode= True, #Really poorly implemented debug mode, this is for reading occured errors.
                                         #It is not reliable right now but you can give it a try if you want to.
                 createCookies= True #True by default.
             )
@@ -69,7 +69,7 @@ class xBridge:
             #     self.client_selenium.driver.close()
             return self.client_selenium.get_tweets_csv()
         login_bool = (self.client_selenium.login_bool or self.client_selenium_action.login_bool)
-        if not login_bool:
+        if not self.client_selenium.login_bool:
             self.client_selenium.login()
             return scrape()
         else:
@@ -80,8 +80,14 @@ class xBridge:
                 self.client_selenium.login()
                 return scrape()
 
-    def tweet_selenium(self, text):
-        self.client_selenium_action.tweet(text=text)
+    def tweet_selenium(self, text,in_reply_to_tweet_id, quote_tweet_id,img_path=None):
+        if in_reply_to_tweet_id:
+            self.client_selenium_action.reply(text=text, tweet_id=in_reply_to_tweet_id, imgpath=img_path)
+        elif quote_tweet_id:
+            self.logs.log_info("Quoting is not implemented in twAuto, using reply instead")
+            self.client_selenium_action.reply(text=text, tweet_id=quote_tweet_id, imgpath=img_path)
+        else:
+            self.client_selenium_action.tweet(text=text, imgpath=img_path)
         self.logs.log_info("Tweeted via selenium")
 
     def get_home_timeline(self, count=5):
@@ -112,9 +118,9 @@ class xBridge:
         self.tweet_core(text, in_reply_to_tweet_id=in_reply_to_tweet_id, image_path=image_path, quote_tweet_id=quote_tweet_id)
         self.logs.log_info("Tweeted:\n" + text)
 
-    def tweet_core(self, text, in_reply_to_tweet_id=None, image_path="", quote_tweet_id=None):
+    def tweet_core(self, text, in_reply_to_tweet_id=None, image_path=None, quote_tweet_id=None):
         if self.scrape:
-            self.tweet_selenium(text)
+            self.tweet_selenium(text,in_reply_to_tweet_id=in_reply_to_tweet_id, quote_tweet_id=quote_tweet_id,img_path=image_path)
         else:
             try:
                 self.client_official.create_tweet(text=text, in_reply_to_tweet_id=in_reply_to_tweet_id, quote_tweet_id=quote_tweet_id)
