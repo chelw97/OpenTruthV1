@@ -2,6 +2,10 @@
 
 # OpenTruth
 OpenTruth is an open-source version of [terminal of truths](https://x.com/truth_terminal "terminal of truths"). Designed to explore and test the intersections between **AI, decentralized financial markets, and  social media like X**, OpenTruth empowers developers, researchers, and enthusiasts to investigate how AI can operate autonomously within financial ecosystems, particularly within the **meme economy** and **cryptocurrency space**, via **social media**. With OpenTruth, we aim to democratize access to the research potential behind AI-driven financial experimentation, encouraging contributions that enhance its functionality and scope.
+
+## demo video
+[OpenTruth demo](https://youtu.be/IPw1bxgsw2o)
+
 <div align="center">
     <img src="imgs/img1.jpg" alt="img1" width="400" height="auto">
     <img src="imgs/demo.jpg" alt="demo" width="1000" height="auto">
