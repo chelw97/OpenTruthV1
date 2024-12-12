@@ -16,8 +16,8 @@ class observationX(observationInterface):
         self.config=config
         self.xBridge_instance = xBridge_instance
 
-    def get(self):
-        return self.get_home_timeline()
+    def get(self,count=5):
+        return self.get_home_timeline(count)
         # return self.get_test()
 
     def get_test(self):

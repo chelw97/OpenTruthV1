@@ -85,7 +85,7 @@ class openTruth:
         self.logs.log_info("Running OpenTruth system")
         while True:
             # 1. get oberservation
-            observation = self.observation.get()
+            observation = self.observation.get(10)
             self.logs.log_info(str(observation), "bold green" ,"Observation")
             # 2. laod memory
             memory = self.memory.quer_memory()

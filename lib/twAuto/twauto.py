@@ -114,6 +114,7 @@ class twAuto:
         twAuto.driver.get("https://x.com/home")
 
     def login(self):
+        if self.login_bool: return
         print()
         print("Logging in to Twitter...")
 

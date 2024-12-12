@@ -68,7 +68,6 @@ class xBridge:
             # if not self.client_selenium.interrupted:
             #     self.client_selenium.driver.close()
             return self.client_selenium.get_tweets_csv()
-        login_bool = (self.client_selenium.login_bool or self.client_selenium_action.login_bool)
         if not self.client_selenium.login_bool:
             self.client_selenium.login()
             return scrape()

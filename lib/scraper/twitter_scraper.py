@@ -191,6 +191,7 @@ class Twitter_Scraper:
         pass
 
     def login(self):
+        if self.login_bool: return
         print()
         print("Logging in to Twitter...")
 
