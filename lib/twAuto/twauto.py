@@ -62,6 +62,7 @@ class twAuto:
         self.headless = headless
         self.debugMode = debugMode
         self.createCookies = createCookies
+        self.login_bool = False
         if headless:
             twAuto.browser_option.add_argument('--headless')
         if debugMode:
