@@ -6,6 +6,8 @@ sys.path.append(os.path.abspath('.'))
 
 from src.config import get_config,get_credentials
 from src.logs import logs
+from src.log import config_logging
+logger = config_logging()
 config=get_config()
 credentials=get_credentials()
 
@@ -42,7 +44,6 @@ class xBridge:
             self.client_selenium = None
 
         self.client_official = tweepy.Client(
-                bearer_token=credentials["TWITTER_API_BEARER_TOKEN"],
                 access_token=credentials["TWITTER_API_ACCESS_TOKEN"],
                 access_token_secret=credentials["TWITTER_API_ACCESS_TOKEN_SECRET"],
                 consumer_key=credentials["TWITTER_API_CONSUMER_KEY"],
@@ -56,6 +57,14 @@ class xBridge:
         returns the tweets in csv(df) format with columns of:
         Name,Handle,Timestamp,Verified,Content,Comments,Retweets,Likes,Analytics,Tags,Mentions,Emojis,Profile Image,Tweet Link,Tweet ID
         '''
+        if not self.scrape:
+            from lib.scraper.twitter_scraper import Twitter_Scraper
+
+            self.client_selenium = Twitter_Scraper(
+                        mail=None,
+                        username=credentials['TWITTER_user_name'],
+                        password=credentials['TWITTER_pwd']
+                    )
         def scrape():
             self.client_selenium.scrape_tweets(
                 max_tweets=count,
@@ -126,7 +135,7 @@ class xBridge:
             except tweepy.errors.TooManyRequests as e:
                 self.logs.log_error("429 too many requests: "+str(e))
             except Exception as e:
-                self.logs.log_error("Fail to create tweet: "+str(e),exc_info=True)
+                logger.error("Fail to create tweet", exc_info=True)
 
 
 if __name__ == "__main__":
